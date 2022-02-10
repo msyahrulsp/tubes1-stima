@@ -6,7 +6,6 @@ import za.co.entelect.challenge.entities.GameState;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
@@ -23,7 +22,7 @@ public class Main {
 
         Scanner sc = new Scanner(System.in);
         Gson gson = new Gson();
-        Random random = new Random(System.nanoTime());
+        Bot bot = new Bot();
 
         while(true) {
             try {
@@ -33,7 +32,7 @@ public class Main {
                 String state = new String(Files.readAllBytes(Paths.get(statePath)));
 
                 GameState gameState = gson.fromJson(state, GameState.class);
-                Command command = new Bot(random, gameState).run();
+                Command command = bot.run(gameState);
 
                 System.out.println(String.format("C;%d;%s", roundNumber, command.render()));
             } catch (Exception e) {
