@@ -2,7 +2,7 @@
   "round-state-output-location": "./match-logs",
   "game-config-file-location": "game-config.json",
   "game-engine-jar": "game-engine.jar",
-  "verbose-mode": true,
+  "verbose-mode": false,
   "max-runtime-ms": 1000,
   "player-a": "./starter-bots/java",
   "player-b": "./reference-bot/java",
