@@ -25,6 +25,16 @@ public enum State {
     USED_BOOST,
     @SerializedName("USED_OIL")
     USED_OIL,
+    @SerializedName("USED_LIZARD")
+    USED_LIZARD,
+    @SerializedName("USED_TWEET")
+    USED_TWEET,
+    @SerializedName("HIT_WALL")
+    HIT_WALL,
+    @SerializedName("HIT_CYBER_TRUCK")
+    HIT_CYBER_TRUCK,
+    @SerializedName("HIT_EMP")
+    HIT_EMP,
     @SerializedName("FINISHED")
     FINISHED
 }
