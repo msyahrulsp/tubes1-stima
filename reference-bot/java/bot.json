@@ -1,8 +1,8 @@
 {
 	"author": "John Doe",
 	"email": "John.Doe@example.com",
-	"nickName": "CoffeeRef",
+	"nickName": "TheDoctor",
 	"botLocation": "/target",
-	"botFileName": "java-reference-bot-jar-with-dependencies.jar",
+	"botFileName": "java-starter-bot-jar-with-dependencies.jar",
 	"botLanguage": "java"
 }

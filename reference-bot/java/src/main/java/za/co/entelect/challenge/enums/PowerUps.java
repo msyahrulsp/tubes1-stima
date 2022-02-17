@@ -13,5 +13,4 @@ public enum PowerUps {
     LIZARD,
     @SerializedName("EMP")
     EMP;
-
 }

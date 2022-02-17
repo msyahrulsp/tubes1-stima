@@ -33,6 +33,8 @@ public enum State {
     HIT_WALL,
     @SerializedName("HIT_CYBER_TRUCK")
     HIT_CYBER_TRUCK,
+    @SerializedName("HIT_EMP")
+    HIT_EMP,
     @SerializedName("FINISHED")
     FINISHED
 }
