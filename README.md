@@ -34,7 +34,7 @@ File .jar dan bot.json ada di folder bin di dalam repository ini.
 Kelompok 46 - TheDoctor
 
 Anggota :
-*Dzaky Fattan Rizqullah (13520003)
-*Fachry Dennis Heraldi 		(13520139)
-*M Syahrul Surya Putra 	(13520161)
+* Dzaky Fattan Rizqullah (13520003)
+* Fachry Dennis Heraldi 		(13520139)
+* M Syahrul Surya Putra 	(13520161)
 
