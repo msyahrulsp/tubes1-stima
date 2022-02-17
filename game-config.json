@@ -3,7 +3,7 @@
     "TRACK_LENGTH": 1500,
     "MIN_LANE": 1,
     "MAX_LANE": 4,
-    "MAX_ROUNDS": 600,
+    "MAX_ROUNDS": 100,
 
     "EMPTY_PLAYER": 0,
     "DEFAULT_HEALTH":0,

@@ -14,5 +14,5 @@ public class Lane {
     public int occupiedByPlayerId;
 
     @SerializedName("isOccupiedByCyberTruck")
-    public Boolean isOccupiedByCyberTruck;
+    public Boolean tweet;
 }
