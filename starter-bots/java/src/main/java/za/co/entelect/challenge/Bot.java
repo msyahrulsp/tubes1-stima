@@ -57,21 +57,49 @@ public class Bot {
             return FIX;
         }
 
-        if (myCar.speed == 0) {
-            return ACCELERATE;
-        }
-
         // Damage harus selalu minimal 2 supaya bisa pake boost
         if (myCar.damage >= 1) {
             return FIX;
         }
 
+        // Safecase Stuck
+        if (myCar.speed == 0) {
+            return ACCELERATE;
+        }
+
+        // Pake Boost cuman kalau kosong banget
+        if (!laneHaveObstacle(blocksBoost) && hasPowerUp(PowerUps.BOOST, myCar.powerups) && !myCar.boosting && myCar.damage == 0) {
+            return BOOST;
+        }
+
+        // Accelerate ketika next speed state kosong obstacle
         if (!laneHaveObstacle(blocks2) && myCar.speed < maxSpeed) {
             return ACCELERATE;
         }
 
         if (laneHaveObstacle(blocks)) {
             action = avoidMove(blocks);
+            if (action != NOTHING) {
+                return action;
+            }
+            int dec = 0;
+            if (myCar.speed == boostSpeed) {
+                dec = 6;
+            } else if (myCar.speed == maxSpeed) {
+                dec = 1;
+            } else if (myCar.speed == speedState3) {
+                dec = 2;
+            } else if (myCar.speed == speedState2) {
+                dec = 3;
+            }
+            List<Object> decBlocks = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, myCar.speed - dec);
+            if (!laneHaveObstacle(decBlocks)) {
+                return DECELERATE;
+            }
+        }
+
+        if (laneHaveObstacle(blocks2)) {
+            action = avoidMove(blocks2);
             if (action != NOTHING) {
                 return action;
             }
@@ -347,5 +375,4 @@ public class Bot {
             return 3;
         }
     }
-
 }
