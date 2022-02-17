@@ -48,7 +48,7 @@ public class Bot {
     public Command run() {
         Command action;
         List<Object> blocks = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, myCar.speed);
-        int blocksWeight = getLaneWeight(myCar.position.lane, myCar.position.block, this.gameState, myCar.speed);
+        List<Object> blocksBoost = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, 15);
 
         // Prioritasin repair abis Hit Wall atau Cyber Truck
         if (myCar.state == State.HIT_CYBER_TRUCK || myCar.state == State.HIT_WALL) {
@@ -61,7 +61,7 @@ public class Bot {
         }
 
         if (laneHaveObstacle(blocks)) {
-            action = avoidMove(blocks, blocksWeight);
+            action = avoidMove(blocks);
             if (action != NOTHING) {
                 return action;
             }
@@ -75,24 +75,19 @@ public class Bot {
             } else if (myCar.speed == speedState2) {
                 dec = 3;
             }
-            // TODO Tambahin bobot block
             List<Object> decBlocks = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, myCar.speed - dec);
             if (!laneHaveObstacle(decBlocks)) {
                 return DECELERATE;
             }
         }
-        
-        // Pake Boost cuman kalau kosong banget
-        if (!laneHaveObstacle(blocks) && hasPowerUp(PowerUps.BOOST, myCar.powerups) && !myCar.boosting) {
-            return BOOST;
-        }
-
-        if (myCar.speed < maxSpeed) {
-            return ACCELERATE;
-        }
 
         if (validEMP()) {
             return EMP;
+        }
+
+        // Pake Boost cuman kalau kosong banget
+        if (!laneHaveObstacle(blocksBoost) && hasPowerUp(PowerUps.BOOST, myCar.powerups) && !myCar.boosting) {
+            return BOOST;
         }
 
         if (validTweet()) {
@@ -131,12 +126,10 @@ public class Bot {
         return ACCELERATE;
     }
 
-    private Command avoidMove(List<Object> blocks, int weight) {
+    private Command avoidMove(List<Object> blocks) {
         if (right && left) {
             List<Object> rightBlocks = getBlocksInFront(myCar.position.lane + 1, myCar.position.block, this.gameState, myCar.speed - 1);
-            int rightBlocksWeight = getLaneWeight(myCar.position.lane + 1, myCar.position.block, this.gameState, myCar.speed - 1);
             List<Object> leftBlocks = getBlocksInFront(myCar.position.lane - 1, myCar.position.block, this.gameState, myCar.speed - 1);
-            int leftBlocksWeight = getLaneWeight(myCar.position.lane - 1, myCar.position.block, this.gameState, myCar.speed - 1);
             if (!laneHaveObstacle(rightBlocks) && (laneHavePower(rightBlocks, Terrain.BOOST) || laneHavePower(rightBlocks, Terrain.LIZARD))) {
                 return TURN_RIGHT;
             }
@@ -152,18 +145,17 @@ public class Bot {
             if (hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
                 return LIZARD;
             }
-            
-            if (laneHaveObstacle(blocks) && laneHaveObstacle(rightBlocks) && laneHaveObstacle(leftBlocks)) {
-                int max = Math.max(Math.max(weight, rightBlocksWeight), leftBlocksWeight);
-                if (weight == max) {
-                    return ACCELERATE;
-                }
-                if (rightBlocksWeight == max) {
-                    return TURN_RIGHT;
-                }
-                if (leftBlocksWeight == max) {
-                    return TURN_LEFT;
-                }
+
+            if (laneHavePower(blocks, Terrain.BOOST) || laneHavePower(blocks, Terrain.LIZARD)) {
+                return ACCELERATE;
+            }
+
+            if (laneHavePower(rightBlocks, Terrain.BOOST) || laneHavePower(rightBlocks, Terrain.LIZARD)) {
+                return TURN_RIGHT;
+            }
+
+            if (laneHavePower(leftBlocks, Terrain.BOOST) || laneHavePower(leftBlocks, Terrain.LIZARD)) {
+                return TURN_LEFT;
             }
         } else {
             if (right) {
@@ -171,8 +163,17 @@ public class Bot {
                 if (!laneHaveObstacle(rightBlocks)) {
                     return TURN_RIGHT;
                 }
+
                 if (hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
                     return LIZARD;
+                }
+                
+                if (laneHavePower(blocks, Terrain.BOOST) || laneHavePower(blocks, Terrain.LIZARD)) {
+                    return ACCELERATE;
+                }
+    
+                if (laneHavePower(rightBlocks, Terrain.BOOST) || laneHavePower(rightBlocks, Terrain.LIZARD)) {
+                    return TURN_RIGHT;
                 }
             }
             if (left) {
@@ -182,6 +183,14 @@ public class Bot {
                 }
                 if (hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
                     return LIZARD;
+                }
+                
+                if (laneHavePower(blocks, Terrain.BOOST) || laneHavePower(blocks, Terrain.LIZARD)) {
+                    return ACCELERATE;
+                }
+
+                if (laneHavePower(leftBlocks, Terrain.BOOST) || laneHavePower(leftBlocks, Terrain.LIZARD)) {
+                    return TURN_LEFT;
                 }
             }
         }
@@ -265,40 +274,6 @@ public class Bot {
             && opponent.position.lane == myCar.position.lane
             && hasPowerUp(PowerUps.OIL, myCar.powerups)
         );
-    }
-    
-    private int getLaneWeight(int lane, int block, GameState gameState, int speed) {
-        List<Lane[]> map = gameState.lanes;
-        int startBlock = map.get(0)[0].position.block;
-        int result = 0;
-
-        Lane[] laneList = map.get(lane - 1);
-        for (int i = max(block - startBlock, 0); i <= block - startBlock + speed; i++) {
-            if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
-                break;
-            }
-
-            if (laneList[i].terrain == Terrain.MUD) {
-                result -= 2;
-            } else if (laneList[i].terrain == Terrain.OIL_SPILL) {
-                result -= 2;
-            } else if (laneList[i].terrain == Terrain.WALL) {
-                result -= 5;
-            } else if (laneList[i].terrain == Terrain.TWEET_TRUCK) {
-                result -= 5;
-            } else if (laneList[i].terrain == Terrain.BOOST) {
-                result += 7;
-            } else if (laneList[i].terrain == Terrain.LIZARD) {
-                result += 5;
-            } else if (laneList[i].terrain == Terrain.EMP) {
-                result += 5;
-            } else if (laneList[i].terrain == Terrain.TWEET_POWER) {
-                result += 5;
-            } else if (laneList[i].terrain == Terrain.OIL_POWER) {
-                result += 2;
-            }
-        }
-        return result;
     }
 
     private List<Object> getBlocksInFront(int lane, int block, GameState gameState, int speed) {
