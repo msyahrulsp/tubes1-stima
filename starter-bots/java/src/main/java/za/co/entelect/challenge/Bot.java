@@ -77,6 +77,7 @@ public class Bot {
             return ACCELERATE;
         }
 
+        // Avoid Logic buat kalau kena obstacle di speed yang sekarang
         if (laneHaveObstacle(blocks)) {
             action = avoidMove(blocks);
             if (action != NOTHING) {
@@ -98,6 +99,7 @@ public class Bot {
             }
         }
 
+        // Avoid Logic buat kalau kena obstacle di next speed state (exluding boost speed) 
         if (laneHaveObstacle(blocks2)) {
             action = avoidMove(blocks2);
             if (action != NOTHING) {
@@ -119,6 +121,7 @@ public class Bot {
             }
         }
 
+        // Menggunakan EMP
         if (validEMP()) {
             return EMP;
         }
@@ -128,6 +131,7 @@ public class Bot {
             return BOOST;
         }
 
+        // Summon Cyber Truck boi
         if (validTweet()) {
             int block = opponent.position.block + opponent.speed + 1;
             int lane = opponent.position.lane;
@@ -145,10 +149,6 @@ public class Bot {
             return new TweetCommand(lane, block);
         }
 
-        if (validOIL()) {
-            return OIL;
-        }
-
         // Ambil Power Up
         // Priority : EMP > Tweet > Boost > Lizard > Oil (Hoki2an)
         if (!hasPowerUp(PowerUps.EMP, myCar.powerups)) {
@@ -161,10 +161,17 @@ public class Bot {
             return prioPower(Terrain.LIZARD);
         }
 
+        // Summon OIL
+        if (validOIL()) {
+            return OIL;
+        }
+
+        // Default return
         return ACCELERATE;
     }
 
     private Command avoidMove(List<Object> blocks) {
+        // Car berada di lane 2 atau 3
         if (right && left) {
             List<Object> rightBlocks = getBlocksInFront(myCar.position.lane + 1, myCar.position.block, this.gameState, myCar.speed - 1);
             List<Object> leftBlocks = getBlocksInFront(myCar.position.lane - 1, myCar.position.block, this.gameState, myCar.speed - 1);
@@ -196,6 +203,7 @@ public class Bot {
                 return TURN_LEFT;
             }
         } else {
+            // Car ada di lane < 4
             if (right) {
                 List<Object> rightBlocks = getBlocksInFront(myCar.position.lane + 1, myCar.position.block, this.gameState, myCar.speed - 1);
                 if (!laneHaveObstacle(rightBlocks)) {
@@ -214,6 +222,7 @@ public class Bot {
                     return TURN_RIGHT;
                 }
             }
+            // Car ada di lane > 1
             if (left) {
                 List<Object> leftBlocks = getBlocksInFront(myCar.position.lane - 1, myCar.position.block, this.gameState, myCar.speed - 1);
                 if (!laneHaveObstacle(leftBlocks)) {
@@ -236,6 +245,7 @@ public class Bot {
     }
 
     private Command prioPower(Terrain power) {
+        // Car ada di lane 2 atau 3
         if (right && left) {
             List<Object> rightBlocks = getBlocksInFront(myCar.position.lane + 1, myCar.position.block, this.gameState, myCar.speed - 1);
             List<Object> leftBlocks = getBlocksInFront(myCar.position.lane - 1, myCar.position.block, this.gameState, myCar.speed - 1);
@@ -246,12 +256,14 @@ public class Bot {
                 return TURN_LEFT;
             }
         } else {
+            // Car ada di lane < 4
             if (right) {
                 List<Object> rightBlocks = getBlocksInFront(myCar.position.lane + 1, myCar.position.block, this.gameState, myCar.speed - 1);
                 if (!laneHaveObstacle(rightBlocks) && laneHavePower(rightBlocks, power)) {
                     return TURN_RIGHT;
                 }
             }
+            // Cara da di lane > 1
             if (left) {
                 List<Object> leftBlocks = getBlocksInFront(myCar.position.lane - 1, myCar.position.block, this.gameState, myCar.speed - 1);
                 if (!laneHaveObstacle(leftBlocks) && laneHavePower(leftBlocks, power)) {
@@ -262,12 +274,14 @@ public class Bot {
         return ACCELERATE;
     }
 
+    // Cek opponent ada di lane yang valid buat emp
     private Boolean inAdjacentLane() {
         return (
             opponent.position.lane <= myCar.position.lane + 1 && opponent.position.lane >= myCar.position.lane - 1
         );
     }
 
+    // Cek powerup di invent
     private Boolean hasPowerUp(PowerUps powerUpToCheck, PowerUps[] available) {
         for (PowerUps powerUp: available) {
             if (powerUp.equals(powerUpToCheck)) {
@@ -277,12 +291,14 @@ public class Bot {
         return false;
     }
 
+    // Cek lane punya certain powerup atau gk
     private Boolean laneHavePower(List<Object> blocks, Terrain terrain) {
         return (
             blocks.contains(terrain)
         );
     }
 
+    // Cek bisa shoot emp atau gk
     private Boolean validEMP() {
         return (
             myCar.position.block < opponent.position.block
@@ -294,6 +310,7 @@ public class Bot {
     private Boolean validTweet() {
         return (
             hasPowerUp(PowerUps.TWEET, myCar.powerups)
+            && opponent.speed >= speedState1
         );
     }
 
@@ -306,24 +323,16 @@ public class Bot {
         );
     }
 
+    // Cek kevalidan kondisi release ~~kracken~~ oil
     private Boolean validOIL() {
         return (
-            opponent.position.block >= myCar.position.block - 2 && opponent.position.block <= myCar.position.block // Car lain di belakang
+            opponent.position.block < myCar.position.block // Car lain di belakang
             && opponent.position.lane == myCar.position.lane
             && hasPowerUp(PowerUps.OIL, myCar.powerups)
         );
     }
 
-    private int getPowerUpQty(PowerUps powerUpToCheck, PowerUps[] available) {
-        int count=0;
-        for (PowerUps powerUp: available) {
-            if (powerUp.equals(powerUpToCheck)) {
-                count++;
-            }
-        }
-        return count;
-    }
-  
+    // Gets block in front
     private List<Object> getBlocksInFront(int lane, int block, GameState gameState, int speed) {
         List<Lane[]> map = gameState.lanes;
         List<Object> blocks = new ArrayList<>();
@@ -359,7 +368,7 @@ public class Bot {
         return true;
     }
   
-    // pengecekan berapa speed selanjutnya
+    // Pengecekan berapa speed selanjutnya
     private int getNextSpeed(int currentSpeed) {
         if (currentSpeed == initialSpeed) {
             return speedState1;
