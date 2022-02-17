@@ -8,3 +8,6 @@
 
 # Match logs
 /match-logs/
+
+# Util
+/.vscode
