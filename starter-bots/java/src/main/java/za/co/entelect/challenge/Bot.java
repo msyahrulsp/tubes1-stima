@@ -13,6 +13,7 @@ public class Bot {
 
     private static final int minSpeed = 0;
     private static final int speedState1 = 3;
+    private static final int initialSpeed = 5;
     private static final int speedState2 = 6;
     private static final int speedState3 = 8;
     private static final int maxSpeed = 9;
@@ -48,6 +49,7 @@ public class Bot {
     public Command run() {
         Command action;
         List<Object> blocks = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, myCar.speed);
+        List<Object> blocks2 = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, getNextSpeed(myCar.speed));
         List<Object> blocksBoost = getBlocksInFront(myCar.position.lane, myCar.position.block, this.gameState, 15);
 
         // Prioritasin repair abis Hit Wall atau Cyber Truck
@@ -55,9 +57,17 @@ public class Bot {
             return FIX;
         }
 
+        if (myCar.speed == 0) {
+            return ACCELERATE;
+        }
+
         // Damage harus selalu minimal 2 supaya bisa pake boost
-        if (myCar.damage >= 2) {
+        if (myCar.damage >= 1) {
             return FIX;
+        }
+
+        if (!laneHaveObstacle(blocks2) && myCar.speed < maxSpeed) {
+            return ACCELERATE;
         }
 
         if (laneHaveObstacle(blocks)) {
@@ -86,7 +96,7 @@ public class Bot {
         }
 
         // Pake Boost cuman kalau kosong banget
-        if (!laneHaveObstacle(blocksBoost) && hasPowerUp(PowerUps.BOOST, myCar.powerups) && !myCar.boosting) {
+        if (!laneHaveObstacle(blocksBoost) && hasPowerUp(PowerUps.BOOST, myCar.powerups) && !myCar.boosting && myCar.damage == 0) {
             return BOOST;
         }
 
@@ -107,6 +117,10 @@ public class Bot {
             return new TweetCommand(lane, block);
         }
 
+        if (validOIL()) {
+            return OIL;
+        }
+
         // Ambil Power Up
         // Priority : EMP > Tweet > Boost > Lizard > Oil (Hoki2an)
         if (!hasPowerUp(PowerUps.EMP, myCar.powerups)) {
@@ -115,12 +129,8 @@ public class Bot {
             return prioPower(Terrain.TWEET_POWER);
         } else if (!hasPowerUp(PowerUps.BOOST, myCar.powerups)) {
             return prioPower(Terrain.BOOST);
-        } else if (!hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
+        } else if (!hasPowerUp(PowerUps.LIZARD, myCar.powerups) && safeLanding(blocks) ) {
             return prioPower(Terrain.LIZARD);
-        }
-
-        if (validOIL()) {
-            return OIL;
         }
 
         return ACCELERATE;
@@ -142,7 +152,7 @@ public class Bot {
             if (!laneHaveObstacle(leftBlocks)) {
                 return TURN_LEFT;
             }
-            if (hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
+            if (hasPowerUp(PowerUps.LIZARD, myCar.powerups) && safeLanding(blocks) ) {
                 return LIZARD;
             }
 
@@ -164,7 +174,7 @@ public class Bot {
                     return TURN_RIGHT;
                 }
 
-                if (hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
+                if (hasPowerUp(PowerUps.LIZARD, myCar.powerups) && safeLanding(blocks) ) {
                     return LIZARD;
                 }
                 
@@ -181,7 +191,7 @@ public class Bot {
                 if (!laneHaveObstacle(leftBlocks)) {
                     return TURN_LEFT;
                 }
-                if (hasPowerUp(PowerUps.LIZARD, myCar.powerups)) {
+                if (hasPowerUp(PowerUps.LIZARD, myCar.powerups) && safeLanding(blocks) ) {
                     return LIZARD;
                 }
                 
@@ -309,38 +319,33 @@ public class Bot {
   
     // Jika menggunakan boost lizard untuk melompati obstacle
     // pastikan terlebih dahulu aman landingnya
-    private boolean safeLanding(List<Lane> laneList){
-        if (laneList.get(laneList.size()-1).terrain == Terrain.MUD){
+    private boolean safeLanding(List<Object> laneList){
+        if (laneList.get(laneList.size() - 1) == Terrain.MUD){
             return false;
-        } else if (laneList.get(laneList.size()-1).terrain == Terrain.WALL){
+        } else if (laneList.get(laneList.size() - 1) == Terrain.WALL){
             return false;
-        } else if (laneList.get(laneList.size()-1).terrain == Terrain.OIL_SPILL){
+        } else if (laneList.get(laneList.size() - 1) == Terrain.OIL_SPILL){
             return false;
-        } else if (laneList.get(laneList.size()-1).isOccupiedByCyberTruck){
-            return false;
-        }
+        } 
         
         return true;
     }
   
     // pengecekan berapa speed selanjutnya
-    private int getNextSpeed(int currentSpeed){
-        if (currentSpeed == 3){
-            return 5;
-        } else if (currentSpeed == 5){
-            return 6;
-        } else if (currentSpeed == 6){
-            return 8;
-        } else if (currentSpeed == 8){
-            return 9;
-        } else if (currentSpeed == 9){
-            return 9;
-        } else if (currentSpeed == 15){
-            return 15;
-        } else { // speed 0
+    private int getNextSpeed(int currentSpeed) {
+        if (currentSpeed == initialSpeed) {
+            return speedState1;
+        } else if (currentSpeed == speedState1){
+            return speedState2;
+        } else if (currentSpeed == speedState2){
+            return speedState3;
+        } else if (currentSpeed == speedState3){
+            return maxSpeed;
+        } else if (currentSpeed == maxSpeed){
+            return maxSpeed;
+        }  else { // speed 0
             return 3;
         }
-
     }
 
 }
