@@ -276,6 +276,16 @@ public class Bot {
         );
     }
 
+    private int getPowerUpQty(PowerUps powerUpToCheck, PowerUps[] available) {
+        int count=0;
+        for (PowerUps powerUp: available) {
+            if (powerUp.equals(powerUpToCheck)) {
+                count++;
+            }
+        }
+        return count;
+    }
+  
     private List<Object> getBlocksInFront(int lane, int block, GameState gameState, int speed) {
         List<Lane[]> map = gameState.lanes;
         List<Object> blocks = new ArrayList<>();
@@ -296,4 +306,41 @@ public class Bot {
         }
         return blocks;
     }
+  
+    // Jika menggunakan boost lizard untuk melompati obstacle
+    // pastikan terlebih dahulu aman landingnya
+    private boolean safeLanding(List<Lane> laneList){
+        if (laneList.get(laneList.size()-1).terrain == Terrain.MUD){
+            return false;
+        } else if (laneList.get(laneList.size()-1).terrain == Terrain.WALL){
+            return false;
+        } else if (laneList.get(laneList.size()-1).terrain == Terrain.OIL_SPILL){
+            return false;
+        } else if (laneList.get(laneList.size()-1).isOccupiedByCyberTruck){
+            return false;
+        }
+        
+        return true;
+    }
+  
+    // pengecekan berapa speed selanjutnya
+    private int getNextSpeed(int currentSpeed){
+        if (currentSpeed == 3){
+            return 5;
+        } else if (currentSpeed == 5){
+            return 6;
+        } else if (currentSpeed == 6){
+            return 8;
+        } else if (currentSpeed == 8){
+            return 9;
+        } else if (currentSpeed == 9){
+            return 9;
+        } else if (currentSpeed == 15){
+            return 15;
+        } else { // speed 0
+            return 3;
+        }
+
+    }
+
 }

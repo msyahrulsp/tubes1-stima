@@ -6,5 +6,4 @@ public class AccelerateCommand implements Command {
     public String render() {
         return String.format("ACCELERATE");
     }
-
 }
