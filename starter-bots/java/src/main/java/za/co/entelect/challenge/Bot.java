@@ -101,7 +101,7 @@ public class Bot {
 
         // Avoid Logic buat kalau kena obstacle di next speed state (exluding boost speed) 
         if (laneHaveObstacle(blocks2)) {
-            action = avoidMove(blocks2);
+            action = avoidMove(blocks);
             if (action != NOTHING) {
                 return action;
             }
